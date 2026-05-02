@@ -80,7 +80,7 @@ torchrun \
     --vae_stride 16 \
     --patch_size 1 \
     --model mar_large \
-    --batch_size 8 \
+    --batch_size 16 \
     --accum_iter 1 \
     --num_workers 8 \
     --epochs 400 \

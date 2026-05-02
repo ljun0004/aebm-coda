@@ -648,6 +648,7 @@ class LabelSmoothingCrossEntropy(nn.Module):
         self.smoothing = smoothing
         self.confidence = 1. - smoothing
 
+    @torch.compile
     def forward(self, logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         # print(torch.nn.functional.softmax(logits, dim=-1).detach().mean())
         logprobs = torch.nn.functional.log_softmax(logits, dim=-1)

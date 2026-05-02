@@ -137,9 +137,9 @@ def get_args_parser():
     # MAR params
     parser.add_argument('--grad_clip', type=float, default=3.0,
                         help='Gradient clip')
-    parser.add_argument('--attn_dropout', type=float, default=0.1,
+    parser.add_argument('--attn_dropout', type=float, default=0.,
                         help='attention dropout')
-    parser.add_argument('--proj_dropout', type=float, default=0.1,
+    parser.add_argument('--proj_dropout', type=float, default=0.,
                         help='projection dropout')
     parser.add_argument('--buffer_size', type=int, default=64)
 
