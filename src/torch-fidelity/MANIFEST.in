@@ -1,5 +1,0 @@
-include requirements.txt
-include LICENSE*
-recursive-include doc/img *
-global-exclude *.pth
-global-exclude *.pyc
