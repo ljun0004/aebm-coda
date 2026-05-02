@@ -1,0 +1,100 @@
+#!/bin/bash
+#SBATCH --job-name=bmar
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=48
+#SBATCH --mem=512G
+#SBATCH --time=2-00:00:00
+#SBATCH --output=bmar-%j.out
+
+# --- GPU Partition Selection ---
+
+# Option A: H100
+#SBATCH --partition=m3h
+#SBATCH --qos=m3h
+#SBATCH --gres=gpu:H100:4
+
+# Option B: L40S
+##SBATCH --partition=gpu
+##SBATCH --qos=rtq
+##SBATCH --gres=gpu:L40S:4
+
+# Option C: A100
+##SBATCH --partition=gpu
+##SBATCH --qos=rtq
+##SBATCH --gres=gpu:A100:2
+
+# Email notifications
+##SBATCH --mail-user=loo.junnyong@monash.edu
+##SBATCH --mail-type=BEGIN,END,FAIL
+
+# set -e
+
+## -----------------------------
+## Environment Setup
+## -----------------------------
+module load miniforge3
+# eval "$(conda shell hook)"
+conda activate bmar
+
+# echo "===== Conda / Python sanity check ====="
+# # which conda
+# which python
+# echo "CONDA_PREFIX=${CONDA_PREFIX}"
+# echo "======================================"
+
+## -----------------------------
+## Auto-Detect GPU Count
+## -----------------------------
+# # Automatically sets NPROC based on the SBATCH gres allocation
+# if [ -n "$SLURM_GPUS_ON_NODE" ]; then
+#     export NPROC_PER_NODE=$SLURM_GPUS_ON_NODE
+# else
+#     # Fallback for clusters that don't set the SLURM var
+#     export NPROC_PER_NODE=$(nvidia-smi -L | wc -l)
+# fi
+
+# echo "========================================"
+# echo " Job started: $(date)"
+# echo " Node: $(hostname)"
+# echo " Auto-detected GPUs: ${NPROC_PER_NODE}"
+# echo "========================================"
+
+# Verify allocation
+# nvidia-smi -L
+
+## -----------------------------
+## Distributed Setup
+## -----------------------------
+# export MASTER_ADDR=$(scontrol show hostnames ${SLURM_JOB_NODELIST} | head -n 1)
+# export MASTER_PORT=29500
+# export NODE_RANK=${SLURM_NODEID}
+
+# echo "MASTER_ADDR=${MASTER_ADDR}"
+# echo "MASTER_PORT=${MASTER_PORT}"
+# echo "NODE_RANK=${NODE_RANK}"
+
+## -----------------------------
+## Execution
+## -----------------------------
+cd /home/ljun0004/sa31_scratch2/Junn/aebm
+
+# Optional: Memory fragmentation fix (Uncomment if you see "tried to allocate... generic error")
+# export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
+# # 1. Stop Hugging Face from checking for updates
+# export HF_HUB_OFFLINE=1
+# # 2. Stop TIMM from checking the Hub
+# export TIMM_USE_HF_HUB=0
+# # 3. Speed up file imports on network drives
+# export PYTHONDONTWRITEBYTECODE=1
+
+# echo "Starting training wrapper..."
+
+# NOTE: Ensure your 'train_slurm.sh' uses the $NPROC_PER_NODE variable 
+# Example inside train_slurm.sh: torchrun --nproc_per_node=$NPROC_PER_NODE ...
+bash train.sh
+# bash eval_slurm.sh
+# bash cache_slurm.sh
+
+# echo " Job finished at: $(date)"

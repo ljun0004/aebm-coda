@@ -1,0 +1,43 @@
+# Create environment
+conda create -n aebm python=3.12
+conda activate aebm
+
+# Install dependencies
+python -m pip install --upgrade pip
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
+pip install tensorboard tqdm scipy einops timm opencv-python pytorch-lightning omegaconf 
+pip install torchdiffeq fairscale safetensors
+pip install -e git+https://github.com/LTH14/torch-fidelity.git@master#egg=torch-fidelity
+
+PROJECT_ROOT="/root/autodl-tmp"
+IMAGENET_PATH="${PROJECT_ROOT}/datasets/imagenet/train"
+CACHED_PATH="${PROJECT_ROOT}/datasets/imagenet/cached/vq-f8-n256"
+VAE_PATH="${PROJECT_ROOT}/pretrained_models/vq-f8-n256"
+
+mkdir -p $IMAGENET_PATH $CACHED_PATH $VAE_PATH
+tar -xf archive.tar.gz -C $CACHED_PATH
+unzip archive.zip -d $VAE_PATH
+
+# Clone repo
+cd [WORK_DIR]
+git clone https://github.com/ljun0004/aebm.git
+
+# Download pretrained vae model
+cd [VAE_PATH]
+wget -c https://ommer-lab.com/files/latent-diffusion/vq-f8-n256.zip
+
+# Download dataset
+cd [IMAGENET_PATH]
+wget -c --no-check-certificate --user=YOUR_USERNAME --ask-password "https://image-net.org/data/ILSVRC/2012/ILSVRC2012_img_train.tar"
+tar -xvf ILSVRC2012_img_train.tar --no-same-owner && rm -f ILSVRC2012_img_train.tar
+find . -name "*.tar" | while read -r NAME; do DIR="${NAME%.tar}"; mkdir -p "$DIR"; tar -xvf "$NAME" -C "$DIR" --no-same-owner && rm -f "$NAME"; done
+
+# Cache dataset (use cache_slurm.sh on HPC)
+cd [WORK_DIR]
+chmod +x cache.sh
+./cache.sh
+
+# Training (use train_slurm.sh on HPC)
+cd [WORK_DIR]
+chmod +x train.sh
+./train.sh
