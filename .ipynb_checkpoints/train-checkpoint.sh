@@ -93,7 +93,6 @@ torchrun \
     --beta 1.0 \
     --ddpmloss_scale 1.0 \
     --celoss_scale 1.0 \
-    --reloss_scale 0.0 \
     --mask_ratio_min 0.50 \
     --mask_ratio_max 1.00 \
     --mask_ratio_mu 0.925 \
@@ -102,7 +101,7 @@ torchrun \
     --cached_path ${CACHED_PATH} \
     --resume ${LOAD_PATH} \
     --output_dir ${SAVE_PATH} \
-    --save_freq 5 \
+    --save_freq 10 \
     --save_last_freq 1 \
     --use_cached \
     --online_gen \

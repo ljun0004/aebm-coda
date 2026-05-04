@@ -45,7 +45,7 @@ class MAR(nn.Module):
                  buffer_size=64,
                  grad_checkpointing=False,
                  num_sampling_steps='100', diffusion_batch_mul=1, 
-                 celoss_scale=1.0, ddpmloss_scale=1.0, reloss_scale=0.0, 
+                 ddpmloss_scale=1.0, celoss_scale=1.0, reloss_scale=0.0, 
                  alpha=1.0, beta=1.0, 
                  learn_sigma=False,
                  use_qknorm=False,

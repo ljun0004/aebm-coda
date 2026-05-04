@@ -353,9 +353,8 @@ def main(args):
         class_num=args.class_num,
         grad_checkpointing=args.grad_checkpointing,
         num_sampling_steps=args.num_sampling_steps,
-        celoss_scale=args.celoss_scale,
         ddpmloss_scale=args.ddpmloss_scale,
-        reloss_scale=args.reloss_scale,
+        celoss_scale=args.celoss_scale,
         alpha=args.alpha,
         beta=args.beta,
     )
