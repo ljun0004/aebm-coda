@@ -185,7 +185,8 @@ class ScoreModel(nn.Module):
                 outputs = q, 
                 inputs = x_t,
                 grad_outputs = grad_q,
-                create_graph = mar.training
+                retain_graph = True,
+                create_graph = mar.training and (mar.ddpmloss_scale > 0)
                 )[0]            
 
             model_output = - score
