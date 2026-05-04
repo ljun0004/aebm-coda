@@ -833,14 +833,16 @@ class EBTBlock(nn.Module):
             shift_mlp = None
         else:
             shift_msa, scale_msa, gate_msa, shift_mlp, scale_mlp, gate_mlp = self.adaLN_modulation(c).chunk(6, dim=-1)
-            x_norm = self.norm1(x)
-            x_mod = modulate(x_norm, shift_msa, scale_msa)
-            with sdpa_kernel(backend):
-                attn = self.attn(x_mod, rope=feat_rope)
-            x = x + gate_msa.unsqueeze(1) * attn
-            x_norm = self.norm2(x)
-            x_mod = modulate(x_norm, shift_mlp, scale_mlp)
-            x = x + gate_mlp.unsqueeze(1) * self.mlp(x_mod)
+        
+        x_norm = self.norm1(x)
+        x_mod = modulate(x_norm, shift_msa, scale_msa)
+        with sdpa_kernel(backend):
+            attn = self.attn(x_mod, rope=feat_rope)
+        x = x + gate_msa.unsqueeze(1) * attn
+        x_norm = self.norm2(x)
+        x_mod = modulate(x_norm, shift_mlp, scale_mlp)
+        x = x + gate_mlp.unsqueeze(1) * self.mlp(x_mod)
+        
         return x
 
 class TimestepEmbedder(nn.Module):
