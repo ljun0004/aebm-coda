@@ -22,7 +22,7 @@ from models.ddpmloss import DDPMLoss
 
 from models.swiglu_ffn import SwiGLUFFN 
 from models.pos_embed import VisionRotaryEmbeddingFast
-from models.rmsnorm import RMSNorm
+# from models.rmsnorm import RMSNorm
 
 class MAR(nn.Module):
     """ Masked Autoencoder with VisionTransformer backbone
@@ -73,7 +73,8 @@ class MAR(nn.Module):
         self.out_channels = vae_embed_dim * 2 if learn_sigma else vae_embed_dim
         self.grad_checkpointing = grad_checkpointing
         self.learn_sigma = learn_sigma
-        self.use_rope = use_rope
+
+        print(f"MAR - use_qknorm: {use_qknorm}, use_swiglu: {use_swiglu}, use_rope: {use_rope}, use_rmsnorm: {use_rmsnorm}, wo_shift: {wo_shift}")
 
         # --------------------------------------------------------------------------
         # Class Embedding
@@ -117,7 +118,7 @@ class MAR(nn.Module):
         # self.encoder_pos_embed_learned = nn.Parameter(torch.zeros(1, self.seq_len + self.buffer_size, encoder_embed_dim))
 
         # use rotary position encoding, borrow from EVA
-        if self.use_rope:
+        if use_rope:
             half_head_dim = encoder_embed_dim // encoder_num_heads // 2
             hw_seq_len = self.token_h // patch_size
             self.feat_rope = VisionRotaryEmbeddingFast(
@@ -195,29 +196,15 @@ class MAR(nn.Module):
         def _basic_init(module):
             # Linear layers
             if isinstance(module, (nn.Linear, nn.Conv2d)):
-                if hasattr(module, 'weight'):
+                if hasattr(module, 'weight') and module.weight is not None:
                     torch.nn.init.xavier_uniform_(module.weight)
-                # weight_norm(module, name='weight')
-                # if hasattr(module, 'weight_v'):
-                #     nn.init.xavier_uniform_(module.weight_v)
-                # if hasattr(module, 'weight_g'):
-                #     # nn.init.constant_(module.weight_g, 1.0)
-                #     with torch.no_grad(): # Safe initialization
-                #         # Norm over all dimensions EXCEPT the first one
-                #         dims = tuple(range(1, module.weight_v.ndim))
-                #         if dims:
-                #             v_norm = torch.norm(module.weight_v, p=2, dim=dims, keepdim=True)
-                #         else:
-                #             # Fallback for 1D weights
-                #             v_norm = torch.norm(module.weight_v, p=2, dim=0, keepdim=True)
-                #         module.weight_g.copy_(v_norm)
-                if module.bias is not None:
+                if hasattr(module, 'bias') and module.bias is not None:
                     nn.init.constant_(module.bias, 0)
             # Normalization Layers
             elif isinstance(module, (nn.LayerNorm, nn.RMSNorm)):
-                if module.bias is not None:
+                if hasattr(module, 'bias') and module.bias is not None:
                     nn.init.constant_(module.bias, 0)
-                if module.weight is not None:
+                if hasattr(module, 'weight') and module.weight is not None:
                     nn.init.constant_(module.weight, 1.0)
         self.apply(_basic_init)
 
@@ -554,7 +541,7 @@ class FinalLayer(nn.Module):
         if not use_rmsnorm:
             self.norm_final = nn.LayerNorm(in_channels, elementwise_affine=False, eps=1e-6)
         else:
-            self.norm_final = RMSNorm(in_channels)
+            self.norm_final = nn.RMSNorm(in_channels, elementwise_affine=False, eps=1e-6)
 
         self.adaLN_modulation = nn.Sequential(
             nn.SiLU(),
@@ -582,6 +569,8 @@ class FinalLayer(nn.Module):
         )
 
         self.word_embedding = nn.Parameter(torch.zeros(cookbook_size, out_channels), requires_grad=True)
+
+        self.logit_scale = out_channels ** -0.5
 
         self.logit_bias = nn.Parameter(torch.zeros(1, 1, cookbook_size))
 
@@ -615,7 +604,8 @@ class FinalLayer(nn.Module):
 
         # print(f"FinalLayer - q_upsampled: {q_upsampled.shape}, word_embedding: {word_embedding.shape}")
 
-        logits = q_upsampled @ word_embedding.T + self.logit_bias
+        logits = q_upsampled @ word_embedding.T 
+        logits = logits + self.logit_bias
 
         pi = torch.softmax(logits, dim=-1)       
 
@@ -700,11 +690,11 @@ class Attention(nn.Module):
         self.fused_attn = fused_attn
         
         if use_rmsnorm:
-            norm_layer = RMSNorm
+            norm_layer = nn.RMSNorm
             
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
-        self.q_norm = norm_layer(self.head_dim) if qk_norm else nn.Identity()
-        self.k_norm = norm_layer(self.head_dim) if qk_norm else nn.Identity()
+        self.q_norm = norm_layer(self.head_dim, elementwise_affine=True, eps=1e-6) if qk_norm else nn.Identity()
+        self.k_norm = norm_layer(self.head_dim, elementwise_affine=True, eps=1e-6) if qk_norm else nn.Identity()
         self.attn_drop = nn.Dropout(attn_drop)
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
@@ -781,15 +771,15 @@ class EBTBlock(nn.Module):
             self.norm1 = nn.LayerNorm(dim, elementwise_affine=False, eps=1e-6)
             self.norm2 = nn.LayerNorm(dim, elementwise_affine=False, eps=1e-6)
         else:
-            self.norm1 = RMSNorm(dim)
-            self.norm2 = RMSNorm(dim)
+            self.norm1 = nn.RMSNorm(dim, elementwise_affine=False, eps=1e-6)
+            self.norm2 = nn.RMSNorm(dim, elementwise_affine=False, eps=1e-6)
 
         self.attn = Attention(
             dim,
             num_heads=num_heads,
             qkv_bias=qkv_bias,
             qk_norm=use_qknorm,
-            use_rmsnorm=use_rmsnorm,
+            use_rmsnorm=False,
             attn_drop=attn_drop,
             proj_drop=proj_drop,
             fused_attn=True,
