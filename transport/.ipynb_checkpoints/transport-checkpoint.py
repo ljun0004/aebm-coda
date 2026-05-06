@@ -211,23 +211,29 @@ class Transport:
                 raise NotImplementedError()
             
             if self.model_type == ModelType.NOISE:
-                loss = weight * ((model_output - x0) ** 2)
+                loss = weight * (model_output - x0) ** 2
+                if self.use_cosine_loss:
+                    cos_loss = 1 - th.nn.functional.cosine_similarity(model_output, x0, dim=1)
             else:
-                loss = weight * ((model_output * sigma_t + x0) ** 2)
+                loss = weight * (model_output * sigma_t + x0) ** 2
+                if self.use_cosine_loss:
+                    cos_loss = 1 - th.nn.functional.cosine_similarity(model_output, -x0, dim=1)
 
-            mar = model_kwargs.get("mar")
-            gt_indices = model_kwargs.get("gt_indices")
+        # print(f"training_losses - weight: {weight}, model_output: {model_output.shape}, sigma_t: {sigma_t.shape}, x0: {x0.shape}")
 
-            terms["mse"] = loss.mean(dim=1).reshape(B, -1)
-            terms["re"] = cos_loss.mean(dim=1).reshape(B, -1) if self.model_type == ModelType.VELOCITY and self.use_cosine_loss else th.zeros_like(terms["mse"])
-            terms["ce"] = mar.criterion(logits, gt_indices)
+        mar = model_kwargs.get("mar")
+        gt_indices = model_kwargs.get("gt_indices")
 
-            terms["logits"] = logits.norm(dim=-1)
-            terms["q"] = q.norm(dim=-1)
-            terms["score"] = model_output.norm(dim=-1)
-            terms["temb"] = grad_temb.norm(dim=-1)
-            terms["pi"] = pi
-            terms["scale"] = sigma_t
+        terms["mse"] = loss.mean(dim=1).flatten(1)
+        terms["re"] = cos_loss.flatten(1) if self.use_cosine_loss else th.zeros_like(terms["mse"])
+        terms["ce"] = mar.criterion(logits, gt_indices)
+
+        terms["logits"] = logits.norm(dim=-1)
+        terms["q"] = q.norm(dim=-1)
+        terms["score"] = model_output.norm(dim=-1)
+        terms["temb"] = grad_temb.norm(dim=-1)
+        terms["pi"] = pi
+        terms["scale"] = sigma_t
                 
         return terms
     

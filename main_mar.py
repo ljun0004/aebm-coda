@@ -355,6 +355,7 @@ def main(args):
         num_sampling_steps=args.num_sampling_steps,
         ddpmloss_scale=args.ddpmloss_scale,
         celoss_scale=args.celoss_scale,
+        reloss_scale=args.reloss_scale,
         alpha=args.alpha,
         beta=args.beta,
     )
@@ -390,7 +391,7 @@ def main(args):
         model_state_dict = checkpoint['model']
         msg = model_without_ddp.load_state_dict(model_state_dict, strict=False)
         
-        print("Loading pre-trained model and converting to Weight Norm...")
+        print("Loading pre-trained model...")
         print("Missing keys:", msg.missing_keys)
         print("Unexpected keys:", msg.unexpected_keys)
         print(f"Restored from {ckpt_path}")

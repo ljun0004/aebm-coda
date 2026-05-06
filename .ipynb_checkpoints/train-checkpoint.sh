@@ -88,11 +88,12 @@ torchrun \
     --warmup_epochs 0 \
     --blr 1.0e-4 \
     --weight_decay 0.02 \
-    --grad_clip 1.0 \
+    --grad_clip 10.0 \
     --alpha 1.0 \
     --beta 1.0 \
     --ddpmloss_scale 1.0 \
     --celoss_scale 1.0 \
+    --reloss_scale 1.0 \
     --mask_ratio_min 0.50 \
     --mask_ratio_max 1.00 \
     --mask_ratio_mu 0.925 \

@@ -69,5 +69,7 @@ def create_transport(
         partial_ratio=partial_ratio,
         shift_lg=shift_lg,
     )
+
+    print(f"create_transport - use_cosine_loss: {use_cosine_loss}, use_lognorm: {use_lognorm}")
     
     return state

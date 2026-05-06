@@ -270,8 +270,8 @@ def evaluate(model_without_ddp, vae, multi_quantizer, ema_params, args, epoch, b
             # with torch.cuda.amp.autocast():
             with torch.amp.autocast('cuda', enabled=True, dtype=torch.bfloat16):
                 sampled_tokens = model_without_ddp.sample_tokens(eval_bsz=batch_size, cookbook=cookbook, num_iter=args.num_iter, cfg=cfg,
-                                                                    cfg_schedule=args.cfg_schedule, labels=labels_gen, temperature=args.temperature,
-                                                                    sampling_mode=args.sampling_mode)                       
+                                                                 cfg_schedule=args.cfg_schedule, labels=labels_gen, temperature=args.temperature,
+                                                                 sampling_mode=args.sampling_mode)                       
 
                 if args.vae_mode == "kl":
                     sampled_images = vae.decode(sampled_tokens / 0.2325)
@@ -464,8 +464,8 @@ def generate(model_without_ddp, vae, multi_quantizer, ema_params, args, epoch, b
             # print(f"generate: cookbook: {cookbook.shape}, gt_indices: {gt_indices.shape}")
             with torch.amp.autocast('cuda', enabled=True, dtype=torch.bfloat16):
                 sampled_tokens = model_without_ddp.sample_tokens(eval_bsz=batch_size, cookbook=cookbook, num_iter=args.num_iter, 
-                                                                cfg=cfg, cfg_schedule=args.cfg_schedule, temperature=args.temperature,
-                                                                imgs=h, labels=labels, gt_indices=gt_indices, sampling_mode=args.sampling_mode)
+                                                                 cfg=cfg, cfg_schedule=args.cfg_schedule, temperature=args.temperature,
+                                                                 imgs=h, labels=labels, gt_indices=gt_indices, sampling_mode=args.sampling_mode)
                 # sampled_tokens = h
                 # print(f"generate: sampled_tokens: {sampled_tokens.shape}")
                                                                 

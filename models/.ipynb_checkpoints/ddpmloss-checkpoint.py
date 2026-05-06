@@ -31,7 +31,7 @@ class DDPMLoss(nn.Module):
             loss_weight=None,
             train_eps=None,
             sample_eps=None,
-            use_cosine_loss=False,
+            use_cosine_loss=True,
             use_lognorm=True,
         )
 
@@ -215,16 +215,17 @@ class ScoreModel(nn.Module):
         return x  # [n, c, h, w]
 
     def forward_with_cfg(self, x_t, t, **kwargs):
+        cfg_scale = kwargs.get("cfg_scale")
         half = x_t[: len(x_t) // 2]
         combined = torch.cat([half, half], dim=0)
         model_output, *extras = self.forward(combined, t, **kwargs)
         # For exact reproducibility reasons, we apply classifier-free guidance on only
         # three channels by default. The standard approach to cfg applies it to all channels.
         # This can be done by uncommenting the following line and commenting-out the line following that.
-        eps, rest = model_out[:, :self.in_channels], model_out[:, self.in_channels:]
+        eps, rest = model_output[:, :self.in_channels], model_output[:, self.in_channels:]
         # eps, rest = model_output[:, :3], model_output[:, 3:]
         cond_eps, uncond_eps = torch.split(eps, len(eps) // 2, dim=0)
-        half_eps = uncond_eps + kwargs['cfg_scale'] * (cond_eps - uncond_eps)
+        half_eps = uncond_eps + cfg_scale * (cond_eps - uncond_eps)
         eps = torch.cat([half_eps, half_eps], dim=0)
         return torch.cat([eps, rest], dim=1), *extras
 
