@@ -607,8 +607,7 @@ class FinalLayer(nn.Module):
         logits = q_upsampled @ word_embedding.T 
         logits = logits + self.logit_bias
 
-        pi = torch.softmax(logits, dim=-1)       
-
+        pi = torch.softmax(logits, dim=-1)
         v = pi @ word_embedding
 
         if not mar.training and gt_indices is not None and gamma > 0.0:
