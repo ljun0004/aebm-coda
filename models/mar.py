@@ -202,10 +202,10 @@ class MAR(nn.Module):
                     nn.init.constant_(module.bias, 0)
             # Normalization Layers
             elif isinstance(module, (nn.LayerNorm, nn.RMSNorm)):
-                if hasattr(module, 'bias') and module.bias is not None:
-                    nn.init.constant_(module.bias, 0)
                 if hasattr(module, 'weight') and module.weight is not None:
                     nn.init.constant_(module.weight, 1.0)
+                if hasattr(module, 'bias') and module.bias is not None:
+                    nn.init.constant_(module.bias, 0)
         self.apply(_basic_init)
 
         # Initialize patch_embed like nn.Linear (instead of nn.Conv2d):
