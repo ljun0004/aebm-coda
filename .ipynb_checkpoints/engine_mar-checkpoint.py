@@ -88,7 +88,7 @@ def train_one_epoch(model, vae, multi_quantizer,
                 else:
                     posterior = vae.encode(samples)
                 # normalize the std of latent to be 1. Change it if you use a different tokenizer
-                h = posterior.sample().mul_(0.2325)
+                h = posterior.sample() * 0.2325
                 gt_indices = None
 
             elif args.vae_mode == "coda":
@@ -99,13 +99,14 @@ def train_one_epoch(model, vae, multi_quantizer,
                     moments = moments.to(device, non_blocking=True)
                     gt_indices = gt_indices.to(device, non_blocking=True)
                     posterior = DiagonalGaussianDistribution(moments)
-                    h = posterior.sample().mul_(0.2325)
+                    h = posterior.sample() * 0.2325
                 else:
                     samples = samples.to(device, non_blocking=True)
                     posterior = vae.encode(samples)
-                    h = posterior.sample().mul_(0.2325)
+                    h = posterior.sample() * 0.2325
                     # re-quantization
-                    h_flat = h.flatten(start_dim=2).transpose(1, 2).contiguous()
+                    h_mode = posterior.mode() * 0.2325
+                    h_flat = h_mode.flatten(start_dim=2).transpose(1, 2).contiguous()
                     dists = torch.cdist(h_flat, cookbook) 
                     token_indices = torch.argmin(dists, dim=-1) 
                     gt_indices = token_indices.view(h.size(0), -1).long()
@@ -143,7 +144,6 @@ def train_one_epoch(model, vae, multi_quantizer,
             #     loss = 0.0 * ddpmloss + 1.0 * celoss
             # else:
             loss = total_loss
-
             loss = loss / args.accum_iter
 
             gradnorm = loss_scaler(loss, optimizer, clip_grad=args.grad_clip, parameters=model.parameters(), update_grad=update_grad)
@@ -366,7 +366,7 @@ def generate(model_without_ddp, vae, multi_quantizer, ema_params, args, epoch, b
                 else:
                     posterior = vae.encode(samples)
                 # normalize the std of latent to be 1. Change it if you use a different tokenizer
-                h = posterior.sample().mul_(0.2325)
+                h = posterior.sample() * 0.2325
                 gt_indices = None
 
             elif args.vae_mode == "coda":
@@ -377,11 +377,11 @@ def generate(model_without_ddp, vae, multi_quantizer, ema_params, args, epoch, b
                     moments = moments.to(device, non_blocking=True)
                     gt_indices = gt_indices.to(device, non_blocking=True)
                     posterior = DiagonalGaussianDistribution(moments)
-                    h = posterior.sample().mul_(0.2325)
+                    h = posterior.sample() * 0.2325
                 else:
                     samples = samples.to(device, non_blocking=True)
                     posterior = vae.encode(samples)
-                    h = posterior.sample().mul_(0.2325)
+                    h = posterior.sample() * 0.2325
                     # re-quantization
                     h_flat = h.flatten(start_dim=2).transpose(1, 2).contiguous()
                     dists = torch.cdist(h_flat, cookbook) 
@@ -539,7 +539,7 @@ def cache_latents(vae,
                 posterior = vae.encode(samples)
                 moments = posterior.parameters
 
-                h = posterior.mode().mul_(0.2325) 
+                h = posterior.mode() * 0.2325
                 h_flat = h.flatten(start_dim=2).transpose(1, 2).contiguous()
                 dists = torch.cdist(h_flat, multi_quantizer.codebooks.weight) 
                 token_indices = torch.argmin(dists, dim=-1) 
@@ -548,7 +548,7 @@ def cache_latents(vae,
                 posterior_flip = vae.encode(samples.flip(dims=[3]))
                 moments_flip = posterior_flip.parameters
 
-                h_flip = posterior_flip.mode().mul_(0.2325) 
+                h_flip = posterior_flip.mode() * 0.2325
                 h_flat_flip = h_flip.flatten(start_dim=2).transpose(1, 2).contiguous()
                 dists_flip = torch.cdist(h_flat_flip, multi_quantizer.codebooks.weight) 
                 token_indices_flip = torch.argmin(dists_flip, dim=-1) 

@@ -4,16 +4,17 @@
 ## -----------------------------
 ## Path Definitions
 ## -----------------------------
-PROJECT_ROOT="/home/junn/Junn/AEBM"
+PROJECT_ROOT="/root/autodl-tmp"
+
 IMAGENET_PATH="${PROJECT_ROOT}/datasets/imagenet/train"
 CACHED_PATH="${PROJECT_ROOT}/datasets/imagenet/cached/kl-f16-coda"
+
 VAE_PATH="${PROJECT_ROOT}/pretrained_models/coda/kl16.safetensors"
 VAE_LORA_PATH="${PROJECT_ROOT}/pretrained_models/coda/vae_ema.pth"
 VAE_QUANTIZER_PATH="${PROJECT_ROOT}/pretrained_models/coda/quantizer_ema.pth"
-VAE_CFG="${PROJECT_ROOT}/aebm/first_stage_models/kl-f16/config.yaml"
 
-LOAD_PATH="${PROJECT_ROOT}/ckpts/kl-f16-coda/mar_large/masked_coda_blr1e-4_linear_wu0_wd0.02_gc3_bsz256/checkpoint-last.pth"
-SAVE_PATH="${PROJECT_ROOT}/ckpts/kl-f16-coda/mar_large/masked_coda_blr1e-4_linear_wu0_wd0.02_gc3_bsz256"
+LOAD_PATH="${PROJECT_ROOT}/ckpts/kl-f16-coda/mar_large/masked_coda_qknorm_swiglu_rope_rmsnorm_woshift_00100/checkpoint-last.pth"
+SAVE_PATH="${PROJECT_ROOT}/ckpts/kl-f16-coda/mar_large/masked_coda_qknorm_swiglu_rope_rmsnorm_woshift_00100"
 LOG_PATH="${PROJECT_ROOT}/logs"
 
 ## -----------------------------
@@ -81,19 +82,19 @@ torchrun \
     --vae_stride 16 \
     --patch_size 1 \
     --model mar_large \
-    --batch_size 8 \
-    --accum_iter 1 \
-    --num_workers 8 \
+    --batch_size 16 \
+    --accum_iter 4 \
+    --num_workers 16 \
     --epochs 400 \
     --warmup_epochs 0 \
     --blr 1.0e-4 \
     --weight_decay 0.02 \
-    --grad_clip 1.0 \
+    --grad_clip 10.0 \
     --alpha 1.0 \
     --beta 1.0 \
     --ddpmloss_scale 1.0 \
     --celoss_scale 1.0 \
-    --reloss_scale 0.0 \
+    --reloss_scale 1.0 \
     --mask_ratio_min 0.50 \
     --mask_ratio_max 1.00 \
     --mask_ratio_mu 0.925 \
@@ -102,11 +103,11 @@ torchrun \
     --cached_path ${CACHED_PATH} \
     --resume ${LOAD_PATH} \
     --output_dir ${SAVE_PATH} \
-    --save_freq 5 \
+    --save_freq 10 \
     --save_last_freq 1 \
     --use_cached \
     --generate \
-    --gen_freq 5 \
+    --gen_freq 1 \
     --gen_bsz 1 \
     --gen_num_images ${NPROC_PER_NODE} \
     --sampling_mode diffusion \

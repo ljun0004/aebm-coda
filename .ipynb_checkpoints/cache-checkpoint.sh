@@ -79,7 +79,7 @@ torchrun \
     --vae_lora_path "${VAE_LORA_PATH}" \
     --vae_quantizer_path "${VAE_QUANTIZER_PATH}" \
     --vae_embed_dim 16 \
-    --batch_size 64 \
+    --batch_size 96 \
     --num_workers 16 \
     --data_path "${IMAGENET_PATH}" \
     --cached_path "${CACHED_PATH}"

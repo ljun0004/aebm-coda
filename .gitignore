@@ -1,5 +1,12 @@
+# General Python junk
 __pycache__/
-src/
-src/
-__pycache__/
+*.py[cod]
+
+# Jupyter checkpoints
 .ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# Other local environments
+.venv/
+.env
+src/
