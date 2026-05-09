@@ -70,6 +70,6 @@ def create_transport(
         shift_lg=shift_lg,
     )
 
-    print(f"create_transport - use_cosine_loss: {use_cosine_loss}, use_lognorm: {use_lognorm}")
+    print(f"create_transport - model_type: {model_type}, path_type: {path_type}, loss_type: {loss_type}, train_eps: {train_eps}, sample_eps: {sample_eps}, use_cosine_loss: {use_cosine_loss}, use_lognorm: {use_lognorm}")
     
     return state
