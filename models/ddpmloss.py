@@ -27,7 +27,7 @@ class DDPMLoss(nn.Module):
         
         self.transport = create_transport(
             path_type="Linear",
-            prediction="score",
+            prediction="velocity",
             loss_weight=None,
             train_eps=None,
             sample_eps=None,
@@ -71,6 +71,15 @@ class DDPMLoss(nn.Module):
             reverse=False,
             timestep_shift=0.3,
         )
+
+        # sample_fn = self.sampler.sample_sde(
+        #     sampling_method="Euler",
+        #     diffusion_form="SBDM",
+        #     diffusion_norm=1.0,
+        #     last_step="Mean",
+        #     last_step_size=0.04,
+        #     num_steps=self.num_sampling_steps,
+        # )
 
         # diffusion loss sampling
         if not cfg == 1.0:
@@ -181,7 +190,7 @@ class ScoreModel(nn.Module):
 
             grad_q = mar.alpha * q - mar.beta * v.detach()
             
-            score = torch.autograd.grad(
+            grad_x = torch.autograd.grad(
                 outputs = q, 
                 inputs = x_t,
                 grad_outputs = grad_q,
@@ -189,7 +198,7 @@ class ScoreModel(nn.Module):
                 create_graph = mar.training and (mar.ddpmloss_scale > 0)
                 )[0]            
 
-            model_output = - score
+            model_output = - grad_x
             
         return model_output, logits, q, pi, z_start, grad_q
 

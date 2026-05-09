@@ -424,7 +424,7 @@ class MAR(nn.Module):
         pimax_mean = pi.max(dim=-1)[0].mean()
         scorenorm_mean = scorenorm.mean()
         tembnorm_mean = tembnorm.mean()
-        scale_max = scale.max()
+        scale_max = scale.mean()
 
         loss_mean = self.ddpmloss_scale * ddpmloss_masked + self.celoss_scale * celoss_masked + self.reloss_scale * reloss_masked
 

@@ -233,7 +233,7 @@ class Transport:
         terms["score"] = model_output.norm(dim=-1)
         terms["temb"] = grad_temb.norm(dim=-1)
         terms["pi"] = pi
-        terms["scale"] = sigma_t
+        terms["scale"] = ut
                 
         return terms
     

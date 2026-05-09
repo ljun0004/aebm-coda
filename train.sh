@@ -13,8 +13,8 @@ VAE_PATH="${PROJECT_ROOT}/pretrained_models/coda/kl16.safetensors"
 VAE_LORA_PATH="${PROJECT_ROOT}/pretrained_models/coda/vae_ema.pth"
 VAE_QUANTIZER_PATH="${PROJECT_ROOT}/pretrained_models/coda/quantizer_ema.pth"
 
-LOAD_PATH="${PROJECT_ROOT}/ckpts/kl-f16-coda/mar_large/masked_coda_qknorm_swiglu_rope_rmsnorm_woshift_00100/checkpoint-last.pth"
-SAVE_PATH="${PROJECT_ROOT}/ckpts/kl-f16-coda/mar_large/masked_coda_qknorm_swiglu_rope_rmsnorm_woshift_00100"
+LOAD_PATH="${PROJECT_ROOT}/ckpts/kl-f16-coda/mar_large/masked_coda_Linear_velocity_qknorm_swiglu_rope_rmsnorm_woshift_00100/checkpoint-last.pth"
+SAVE_PATH="${PROJECT_ROOT}/ckpts/kl-f16-coda/mar_large/masked_coda_Linear_velocity_qknorm_swiglu_rope_rmsnorm_woshift_00100"
 LOG_PATH="${PROJECT_ROOT}/logs"
 
 ## -----------------------------
